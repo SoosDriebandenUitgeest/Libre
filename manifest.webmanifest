@@ -1,7 +1,7 @@
 {
   "name": "De SooS Carambole Cup",
   "short_name": "SooS Cup",
-  "description": "Klassement, uitslagen en schema van de maandag- en woensdagcompetitie",
+  "description": "Klassement, uitslagen en records van de maandag- en woensdagcompetitie",
   "lang": "nl",
   "start_url": "./",
   "scope": "./",
