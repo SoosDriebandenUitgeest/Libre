@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1f3864">
+<meta name="apple-mobile-web-app-title" content="SooS Cup">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>De SooS Carambole Cup</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icoon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!--
+  Sjabloon van de site voor de leden (De SooS Carambole Cup, vanaf versie 1.5.5).
+  Het programma zet de gegevens (JSON) in het script met id "gegevens" onderaan (zie Logica/Website.cs) en zet de site via GitHub online.
+  Alles staat in dit ene bestand: geen lettertypen of scripts van andere sites (sneller, en niets naar derden).
+-->
+<style>
+/* Indeling: vaste navy kopbalk met Maandag/Woensdag; op de computer tabbladen bovenaan, op de telefoon een vaste balk onderaan */
+:root{
+  --bg:#eef1f6; --surface:#ffffff; --fg:#14213a; --muted:#5a6478; --line:#d9e0ea;
+  --accent:#1f3864; --accent-soft:#d9e1f2; --on-accent:#ffffff; --kop:#1f3864;
+  --win:#cfeedd; --win-fg:#145c37; --loss:#f8d6db; --loss-fg:#8a1c2c;
+  --draw:#fbecb8; --draw-fg:#6b5300; --plan:#d6e6f8; --plan-fg:#1d4f8c; --diag:#9aa3b2;
+  --lineA:#2a78d6; --lineB:#eb6834; --bar:#1f3864; --bar-good:#3f7a35; --goud:#c79a10;
+  --display:"Barlow Condensed","Avenir Next Condensed","Roboto Condensed","Arial Narrow",sans-serif-condensed,Arial,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1522; --surface:#18202f; --fg:#e6ebf3; --muted:#9aa5b8; --line:#2b3547;
+  --accent:#8fb0e8; --accent-soft:#24314a; --on-accent:#0f1522; --kop:#16284a;
+  --win:#163d2a; --win-fg:#8fdcb0; --loss:#4a1f27; --loss-fg:#f3a9b5;
+  --draw:#463b12; --draw-fg:#f0d77a; --plan:#1c3352; --plan-fg:#a9c9f2; --diag:#3a4558;
+  --lineA:#5b9cf0; --lineB:#f08a5d; --bar:#8fb0e8; --bar-good:#86c27a; --goud:#e3b93a; color-scheme:dark}}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;padding-top:env(safe-area-inset-top,0px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--kop)}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.num{font-variant-numeric:tabular-nums}
+.kort{display:none}
+.km{display:none}
+[hidden]{display:none!important}
+
+.kopblok{position:sticky;top:env(safe-area-inset-top,0px);z-index:20}
+header.top{background:var(--kop);color:#fff}
+header.top .wrap{padding-block:14px 12px;display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;justify-content:space-between}
+.brand small{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.75}
+.brand h1{margin:0;font-family:var(--display);font-weight:700;font-size:30px;line-height:1.05;letter-spacing:.01em}
+.seg{display:inline-flex;flex:none;background:rgba(255,255,255,.14);border-radius:999px;padding:3px}
+.seg button{font:600 14px var(--body);color:#fff;background:none;border:0;border-radius:999px;padding:8px 16px;cursor:pointer;min-height:36px}
+.seg button[aria-pressed="true"]{background:#fff;color:#1f3864}
+.seg button:focus-visible,nav a:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #f0b429;outline-offset:2px}
+
+nav.tabs{background:var(--surface);border-bottom:1px solid var(--line)}
+nav.tabs .wrap{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav.tabs a{flex:none;padding:12px 12px 10px;color:var(--muted);text-decoration:none;font-weight:600;font-size:14.5px;border-bottom:3px solid transparent;display:flex;align-items:center}
+nav.tabs a[aria-current="page"]{color:var(--fg);border-bottom-color:var(--accent)}
+nav.tabs svg{display:none}
+
+main .wrap{padding-block:20px 32px;display:grid;gap:18px}
+h2{font-family:var(--display);font-weight:700;font-size:26px;margin:0;line-height:1.1;text-wrap:balance}
+h3{font-family:var(--display);font-weight:600;font-size:19px;margin:0 0 10px;letter-spacing:.02em;text-wrap:balance}
+.sub{color:var(--muted);margin:2px 0 0;font-size:14px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.grid2{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
+.grid2>*{min-width:0}
+
+.tiles{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
+.tile .k{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.tile .v{font-family:var(--display);font-weight:700;font-size:26px;line-height:1.15;color:var(--accent);overflow-wrap:anywhere}
+.tile .o{font-size:12.5px;color:var(--muted)}
+
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+table.wrapt td,td.nm{white-space:normal}
+td.nm{min-width:8.5em}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;background:var(--accent-soft)}
+td.r,th.r{text-align:right}
+td.c,th.c{text-align:center}
+tr.lead td{font-weight:700}
+tr.goud td{background:var(--draw)}
+.goed{color:var(--win-fg);font-weight:700}
+.slecht{color:var(--loss-fg)}
+.ster{color:var(--goud);font-size:15px}
+.rank{font-family:var(--display);font-weight:700;font-size:18px;color:var(--accent)}
+.pts{font-family:var(--display);font-weight:700;font-size:18px}
+a.pl{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted)}
+a.pl:hover{color:var(--accent)}
+.det{display:block;color:var(--muted);font-size:12.5px;font-weight:400}
+
+.open{display:none;background:none;border:1px solid var(--line);border-radius:6px;color:var(--muted);width:32px;height:30px;cursor:pointer;font-size:14px}
+.open[aria-expanded="true"]{background:var(--accent-soft);color:var(--fg)}
+tr.meer td{background:var(--bg);white-space:normal}
+.meerkv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 10px;font-size:13px;color:var(--muted)}
+.meerkv b{display:block;color:var(--fg);font-family:var(--display);font-size:17px}
+
+.chip{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:700}
+.w{background:var(--win);color:var(--win-fg)} .l{background:var(--loss);color:var(--loss-fg)}
+.d{background:var(--draw);color:var(--draw-fg)} .p{background:var(--plan);color:var(--plan-fg)}
+.leeg{border:1px solid var(--line);color:var(--fg);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+
+.pick{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+select{font:600 16px var(--body);padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);max-width:100%;min-height:42px}
+
+.kaartkop{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:baseline}
+.kaartkop .naam{font-family:var(--display);font-weight:700;font-size:32px;line-height:1}
+.kv{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:14px;color:var(--muted)}
+.kv b{color:var(--fg);font-family:var(--display);font-size:19px;font-weight:700;margin-left:4px}
+.ook{font-size:14px}
+.ook a{color:var(--accent);font-weight:600}
+
+.mlijst{display:none}
+.m{display:grid;grid-template-columns:1fr auto;gap:3px 12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.m:last-child{border-bottom:0}
+.m1{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;min-width:0}
+.m2{font-size:13px;color:var(--muted)}
+.mp{grid-row:1/3;grid-column:2;align-self:center;text-align:right;font-size:12px;color:var(--muted)}
+.mp .pts{display:block;font-size:24px;line-height:1;color:var(--fg)}
+
+.score{display:grid;grid-template-columns:1fr auto 1fr;gap:8px 14px;align-items:center;text-align:center}
+.score .wie{font-weight:700;font-size:16px;overflow-wrap:anywhere}
+.score .car{font-family:var(--display);font-weight:700;font-size:44px;line-height:1}
+.score .mid{color:var(--muted);font-size:13px}
+.score .sdet{font-size:13px;color:var(--muted)}
+.tally{display:flex;gap:10px}
+.tally div{flex:1 1 0;text-align:center;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:13px}
+.tally b{display:block;font-family:var(--display);font-size:30px;line-height:1.1}
+
+.ronde{display:grid;gap:8px}
+.ronde+.ronde{margin-top:16px}
+.ronde h3{margin:0}
+.bilj{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:8px}
+.bilj .nr{font-family:var(--display);font-weight:700;font-size:15px;color:var(--on-accent);background:var(--accent);border-radius:6px;padding:4px 9px;letter-spacing:.04em;text-align:center}
+.bilj .tm{color:var(--muted);font-size:13px}
+.bilj .tag{margin-left:6px}
+.vs{color:var(--muted);margin:0 6px}
+
+.kruis td,.kruis th{padding:0;text-align:center;border:1px solid var(--line)}
+.kruis th{padding:6px 4px;min-width:32px}
+.kruis th.nm,.kruis td.nm{text-align:left;padding:6px 8px;position:sticky;left:0;background:var(--surface);z-index:1;min-width:150px;white-space:normal}
+.kruis th.nm{background:var(--accent-soft)}
+.kruis td.cel{width:34px;height:32px;font-weight:700;font-family:var(--display);font-size:16px}
+.kruis td.x{background:var(--diag)}
+.kruis td.tot{padding:6px 8px;font-variant-numeric:tabular-nums}
+.legenda{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:13px;color:var(--muted);margin-top:10px}
+.sw{display:inline-block;width:14px;height:4px;border-radius:2px;vertical-align:middle;margin-right:4px}
+
+.chart{width:100%}
+.chart svg{display:block;width:100%;height:auto}
+svg text{fill:var(--muted);font:12px var(--body)}
+.foot{color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+.foot .wrap{padding-block:16px}
+@media (prefers-reduced-motion:no-preference){main .panel{animation:in .25s ease-out both}@keyframes in{from{transform:translateY(4px)}}}
+
+/* ---------- telefoon ---------- */
+@media (max-width:700px){
+  .lang{display:none}.kort{display:inline}
+  .hm{display:none}
+  .open{display:inline-block}
+  .km{display:table-cell}
+  .alleen-breed{display:none}
+  .mlijst{display:block}
+  header.top .wrap{padding-block:8px;flex-wrap:nowrap;gap:10px}
+  .brand small{display:none}
+  .brand h1{font-size:21px}
+  .seg button{padding:7px 12px;font-size:14px}
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:25;border-bottom:0;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -2px 10px rgba(0,0,0,.06)}
+  nav.tabs .wrap{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;overflow:visible}
+  nav.tabs a{flex-direction:column;justify-content:center;gap:3px;padding:7px 0 6px;font-size:11px;font-weight:600;border-bottom:0;border-top:3px solid transparent;min-height:52px;white-space:nowrap}
+  nav.tabs a[aria-current="page"]{border-top-color:var(--accent);color:var(--accent)}
+  nav.tabs svg{display:block;width:22px;height:22px}
+  main .wrap{padding-block:16px 24px;gap:14px}
+  .foot .wrap{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+  h2{font-size:23px}
+  .panel{padding:12px}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .tile{padding:10px 12px}
+  .tile .v{font-size:22px}
+  th,td{padding:7px 6px}
+  .kaartkop .naam{font-size:27px}
+  .kv{gap:6px 16px}
+  .score .car{font-size:38px}
+  .score .wie{font-size:15px}
+  .kruis th{min-width:26px;padding:5px 2px;font-size:11px}
+  .kruis th.nm,.kruis td.nm{min-width:7.5em;max-width:9.5em;padding:5px 6px;font-size:13px;line-height:1.25}
+  .kruis td.cel{width:26px;height:28px;font-size:14px}
+  .kruis td.tot{padding:5px 5px}
+}
+@media (min-width:701px){tr.meer{display:none!important}}
+</style>
+</head>
+<body>
+<div class="kopblok">
+<header class="top"><div class="wrap">
+  <div class="brand"><small>Libre biljart · De SooS</small><h1>De SooS Carambole Cup</h1></div>
+  <div class="seg" role="group" aria-label="Competitie">
+    <button id="bMa" type="button" aria-pressed="true">Maandag</button><button id="bWo" type="button" aria-pressed="false">Woensdag</button>
+  </div>
+</div></header>
+<nav class="tabs" aria-label="Onderdelen"><div class="wrap" id="tabs"></div></nav>
+</div>
+<main><div class="wrap" id="main"><noscript><div class="panel">Zet JavaScript aan om de stand te bekijken.</div></noscript></div></main>
+<footer class="foot"><div class="wrap" id="foot"></div></footer>
+
+<script id="gegevens" type="application/json">{"versie":"1.5.5","auteur":"Eddy van IJzendoorn","spelers":{"1":"Hans Teeling","2":"Wil Twisk","3":"Gerard Baltus","4":"Harm Bolsenbroek","5":"Peter vd Eng","6":"Toon vd Eng","7":"Piet Feenstra","8":"Peter Jansen","9":"Erik Kroes","10":"Harry Mooij","11":"Cas Renken","12":"Rob Palmboom","13":"Ruud Schoenmaker","14":"Lex Snak","15":"Dennis Schaap","16":"Gerrit Terol","17":"Wim Timmerman","18":"Ben v Tol","19":"Ed v IJzendoorn","20":"Wim de Veij","21":"Jan Vrouwe","22":"Kees de Groot","23":"Arie Arts","25":"Chiel vd Bogaart","26":"Victor de Graaf","27":"Cor Krom","28":"Gerard Vredenburg","29":"Edwin Duijn","30":"Wim Kerssens","31":"Rob Kaandorp","32":"Cas Snippe","33":"Ruud Rozemeijer"},"competities":[{"id":1,"naam":"Maandagcompetitie","dag":"Ma","beurten":30,"afgesloten":false,"start":"2026-10-22","eind":null,"klassement":[{"sp":1,"nr":1,"naam":"Hans Teeling","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.2,"proc":0,"hs":0,"nog":20,"tm":36,"tmNieuw":36},{"sp":2,"nr":2,"naam":"Wil Twisk","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.6,"proc":0,"hs":0,"nog":20,"tm":48,"tmNieuw":48},{"sp":3,"nr":3,"naam":"Gerard Baltus","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.3,"proc":0,"hs":0,"nog":20,"tm":39,"tmNieuw":39},{"sp":4,"nr":4,"naam":"Harm Bolsenbroek","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.7333,"proc":0,"hs":0,"nog":20,"tm":22,"tmNieuw":22},{"sp":5,"nr":5,"naam":"Peter vd Eng","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.8,"proc":0,"hs":0,"nog":20,"tm":54,"tmNieuw":54},{"sp":6,"nr":6,"naam":"Toon vd Eng","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.3,"proc":0,"hs":0,"nog":20,"tm":39,"tmNieuw":39},{"sp":7,"nr":7,"naam":"Piet Feenstra","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.3333,"proc":0,"hs":0,"nog":20,"tm":40,"tmNieuw":40},{"sp":8,"nr":8,"naam":"Peter Jansen","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.3,"proc":0,"hs":0,"nog":20,"tm":39,"tmNieuw":39},{"sp":9,"nr":9,"naam":"Erik Kroes","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.1333,"proc":0,"hs":0,"nog":20,"tm":34,"tmNieuw":34},{"sp":10,"nr":10,"naam":"Harry Mooij","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.7,"proc":0,"hs":0,"nog":20,"tm":21,"tmNieuw":21},{"sp":11,"nr":11,"naam":"Cas Renken","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.8333,"proc":0,"hs":0,"nog":20,"tm":25,"tmNieuw":25},{"sp":12,"nr":12,"naam":"Rob Palmboom","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.1333,"proc":0,"hs":0,"nog":20,"tm":34,"tmNieuw":34},{"sp":13,"nr":13,"naam":"Ruud Schoenmaker","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.8667,"proc":0,"hs":0,"nog":20,"tm":26,"tmNieuw":26},{"sp":14,"nr":14,"naam":"Lex Snak","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.5,"proc":0,"hs":0,"nog":20,"tm":45,"tmNieuw":45},{"sp":15,"nr":15,"naam":"Dennis Schaap","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.9667,"proc":0,"hs":0,"nog":20,"tm":29,"tmNieuw":29},{"sp":16,"nr":16,"naam":"Gerrit Terol","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.9667,"proc":0,"hs":0,"nog":20,"tm":29,"tmNieuw":29},{"sp":17,"nr":17,"naam":"Wim Timmerman","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.3,"proc":0,"hs":0,"nog":20,"tm":39,"tmNieuw":39},{"sp":18,"nr":18,"naam":"Ben v Tol","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.5,"proc":0,"hs":0,"nog":20,"tm":45,"tmNieuw":45},{"sp":19,"nr":19,"naam":"Ed v IJzendoorn","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":2,"proc":0,"hs":0,"nog":20,"tm":60,"tmNieuw":60},{"sp":20,"nr":20,"naam":"Wim de Veij","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.6667,"proc":0,"hs":0,"nog":20,"tm":20,"tmNieuw":20},{"sp":21,"nr":21,"naam":"Jan Vrouwe","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.7667,"proc":0,"hs":0,"nog":20,"tm":23,"tmNieuw":23}],"partijen":[],"open":[[1,2,null,null],[1,3,null,null],[1,4,null,null],[1,5,null,null],[1,6,null,null],[1,7,null,null],[1,8,null,null],[1,9,null,null],[1,10,null,null],[1,11,null,null],[1,12,null,null],[1,13,null,null],[1,14,null,null],[1,15,null,null],[1,16,null,null],[1,17,null,null],[1,18,null,null],[1,19,null,null],[1,20,null,null],[1,21,null,null],[2,3,null,null],[2,4,null,null],[2,5,null,null],[2,6,null,null],[2,7,null,null],[2,8,null,null],[2,9,null,null],[2,10,null,null],[2,11,null,null],[2,12,null,null],[2,13,null,null],[2,14,null,null],[2,15,null,null],[2,16,null,null],[2,17,null,null],[2,18,null,null],[2,19,null,null],[2,20,null,null],[2,21,null,null],[3,4,null,null],[3,5,null,null],[3,6,null,null],[3,7,null,null],[3,8,null,null],[3,9,null,null],[3,10,null,null],[3,11,null,null],[3,12,null,null],[3,13,null,null],[3,14,null,null],[3,15,null,null],[3,16,null,null],[3,17,null,null],[3,18,null,null],[3,19,null,null],[3,20,null,null],[3,21,null,null],[4,5,null,null],[4,6,null,null],[4,7,null,null],[4,8,null,null],[4,9,null,null],[4,10,null,null],[4,11,null,null],[4,12,null,null],[4,13,null,null],[4,14,null,null],[4,15,null,null],[4,16,null,null],[4,17,null,null],[4,18,null,null],[4,19,null,null],[4,20,null,null],[4,21,null,null],[5,6,null,null],[5,7,null,null],[5,8,null,null],[5,9,null,null],[5,10,null,null],[5,11,null,null],[5,12,null,null],[5,13,null,null],[5,14,null,null],[5,15,null,null],[5,16,null,null],[5,17,null,null],[5,18,null,null],[5,19,null,null],[5,20,null,null],[5,21,null,null],[6,7,null,null],[6,8,null,null],[6,9,null,null],[6,10,null,null],[6,11,null,null],[6,12,null,null],[6,13,null,null],[6,14,null,null],[6,15,null,null],[6,16,null,null],[6,17,null,null],[6,18,null,null],[6,19,null,null],[6,20,null,null],[6,21,null,null],[7,8,null,null],[7,9,null,null],[7,10,null,null],[7,11,null,null],[7,12,null,null],[7,13,null,null],[7,14,null,null],[7,15,null,null],[7,16,null,null],[7,17,null,null],[7,18,null,null],[7,19,null,null],[7,20,null,null],[7,21,null,null],[8,9,null,null],[8,10,null,null],[8,11,null,null],[8,12,null,null],[8,13,null,null],[8,14,null,null],[8,15,null,null],[8,16,null,null],[8,17,null,null],[8,18,null,null],[8,19,null,null],[8,20,null,null],[8,21,null,null],[9,10,null,null],[9,11,null,null],[9,12,null,null],[9,13,null,null],[9,14,null,null],[9,15,null,null],[9,16,null,null],[9,17,null,null],[9,18,null,null],[9,19,null,null],[9,20,null,null],[9,21,null,null],[10,11,null,null],[10,12,null,null],[10,13,null,null],[10,14,null,null],[10,15,null,null],[10,16,null,null],[10,17,null,null],[10,18,null,null],[10,19,null,null],[10,20,null,null],[10,21,null,null],[11,12,null,null],[11,13,null,null],[11,14,null,null],[11,15,null,null],[11,16,null,null],[11,17,null,null],[11,18,null,null],[11,19,null,null],[11,20,null,null],[11,21,null,null],[12,13,null,null],[12,14,null,null],[12,15,null,null],[12,16,null,null],[12,17,null,null],[12,18,null,null],[12,19,null,null],[12,20,null,null],[12,21,null,null],[13,14,null,null],[13,15,null,null],[13,16,null,null],[13,17,null,null],[13,18,null,null],[13,19,null,null],[13,20,null,null],[13,21,null,null],[14,15,null,null],[14,16,null,null],[14,17,null,null],[14,18,null,null],[14,19,null,null],[14,20,null,null],[14,21,null,null],[15,16,null,null],[15,17,null,null],[15,18,null,null],[15,19,null,null],[15,20,null,null],[15,21,null,null],[16,17,null,null],[16,18,null,null],[16,19,null,null],[16,20,null,null],[16,21,null,null],[17,18,null,null],[17,19,null,null],[17,20,null,null],[17,21,null,null],[18,19,null,null],[18,20,null,null],[18,21,null,null],[19,20,null,null],[19,21,null,null],[20,21,null,null]],"dashboard":{"kaarten":[["Spelers","21","Maandag"],["Gespeeld","0 / 210","0% van de wedstrijden"],["Speeldagen","0","met een uitslag"],["Gemiddelde","-","caramboles per beurt (iedereen)"],["Hoogste serie","-","deze competitie"],["Koploper","-",""],["Beste vorm","-",""]],"deze":[],"alltime":[],"staaf":[],"labels":[],"lijnen":[]}},{"id":2,"naam":"Woensdagcompetitie","dag":"Wo","beurten":30,"afgesloten":false,"start":"2026-10-22","eind":null,"klassement":[{"sp":22,"nr":1,"naam":"Kees de Groot","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.9333,"proc":0,"hs":0,"nog":20,"tm":28,"tmNieuw":28},{"sp":13,"nr":2,"naam":"Ruud Schoenmaker","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.8667,"proc":0,"hs":0,"nog":20,"tm":26,"tmNieuw":26},{"sp":17,"nr":3,"naam":"Wim Timmerman","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.3,"proc":0,"hs":0,"nog":20,"tm":39,"tmNieuw":39},{"sp":21,"nr":4,"naam":"Jan Vrouwe","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.7667,"proc":0,"hs":0,"nog":20,"tm":23,"tmNieuw":23},{"sp":20,"nr":5,"naam":"Wim de Veij","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.6667,"proc":0,"hs":0,"nog":20,"tm":20,"tmNieuw":20},{"sp":16,"nr":6,"naam":"Gerrit Terol","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.9667,"proc":0,"hs":0,"nog":20,"tm":29,"tmNieuw":29},{"sp":23,"nr":7,"naam":"Arie Arts","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.9,"proc":0,"hs":0,"nog":20,"tm":27,"tmNieuw":27},{"sp":25,"nr":8,"naam":"Chiel vd Bogaart","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.5,"proc":0,"hs":0,"nog":20,"tm":45,"tmNieuw":45},{"sp":1,"nr":9,"naam":"Hans Teeling","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.2,"proc":0,"hs":0,"nog":20,"tm":36,"tmNieuw":36},{"sp":8,"nr":10,"naam":"Peter Jansen","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.3,"proc":0,"hs":0,"nog":20,"tm":39,"tmNieuw":39},{"sp":26,"nr":11,"naam":"Victor de Graaf","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.8333,"proc":0,"hs":0,"nog":20,"tm":25,"tmNieuw":25},{"sp":27,"nr":12,"naam":"Cor Krom","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.7667,"proc":0,"hs":0,"nog":20,"tm":23,"tmNieuw":23},{"sp":28,"nr":13,"naam":"Gerard Vredenburg","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.6667,"proc":0,"hs":0,"nog":20,"tm":50,"tmNieuw":50},{"sp":29,"nr":14,"naam":"Edwin Duijn","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.6667,"proc":0,"hs":0,"nog":20,"tm":50,"tmNieuw":50},{"sp":14,"nr":15,"naam":"Lex Snak","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.5,"proc":0,"hs":0,"nog":20,"tm":45,"tmNieuw":45},{"sp":30,"nr":16,"naam":"Wim Kerssens","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":2.5,"proc":0,"hs":0,"nog":20,"tm":75,"tmNieuw":75},{"sp":18,"nr":17,"naam":"Ben v Tol","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.5,"proc":0,"hs":0,"nog":20,"tm":45,"tmNieuw":45},{"sp":31,"nr":18,"naam":"Rob Kaandorp","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":1.8,"proc":0,"hs":0,"nog":20,"tm":54,"tmNieuw":54},{"sp":19,"nr":19,"naam":"Ed v IJzendoorn","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":2,"proc":0,"hs":0,"nog":20,"tm":60,"tmNieuw":60},{"sp":32,"nr":20,"naam":"Cas Snippe","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.6667,"proc":0,"hs":0,"nog":20,"tm":20,"tmNieuw":20},{"sp":33,"nr":21,"naam":"Ruud Rozemeijer","gestopt":false,"plaats":"","gesp":0,"w":0,"g":0,"v":0,"pnt":0,"gem":0,"eigen":0.7667,"proc":0,"hs":0,"nog":20,"tm":23,"tmNieuw":23}],"partijen":[],"open":[[22,13,null,null],[22,17,null,null],[22,21,null,null],[22,20,null,null],[22,16,null,null],[22,23,null,null],[22,25,null,null],[22,1,null,null],[22,8,null,null],[22,26,null,null],[22,27,null,null],[22,28,null,null],[22,29,null,null],[22,14,null,null],[22,30,null,null],[22,18,null,null],[22,31,null,null],[22,19,null,null],[22,32,null,null],[22,33,null,null],[13,17,null,null],[13,21,null,null],[13,20,null,null],[13,16,null,null],[13,23,null,null],[13,25,null,null],[13,1,null,null],[13,8,null,null],[13,26,null,null],[13,27,null,null],[13,28,null,null],[13,29,null,null],[13,14,null,null],[13,30,null,null],[13,18,null,null],[13,31,null,null],[13,19,null,null],[13,32,null,null],[13,33,null,null],[17,21,null,null],[17,20,null,null],[17,16,null,null],[17,23,null,null],[17,25,null,null],[17,1,null,null],[17,8,null,null],[17,26,null,null],[17,27,null,null],[17,28,null,null],[17,29,null,null],[17,14,null,null],[17,30,null,null],[17,18,null,null],[17,31,null,null],[17,19,null,null],[17,32,null,null],[17,33,null,null],[21,20,null,null],[21,16,null,null],[21,23,null,null],[21,25,null,null],[21,1,null,null],[21,8,null,null],[21,26,null,null],[21,27,null,null],[21,28,null,null],[21,29,null,null],[21,14,null,null],[21,30,null,null],[21,18,null,null],[21,31,null,null],[21,19,null,null],[21,32,null,null],[21,33,null,null],[20,16,null,null],[20,23,null,null],[20,25,null,null],[20,1,null,null],[20,8,null,null],[20,26,null,null],[20,27,null,null],[20,28,null,null],[20,29,null,null],[20,14,null,null],[20,30,null,null],[20,18,null,null],[20,31,null,null],[20,19,null,null],[20,32,null,null],[20,33,null,null],[16,23,null,null],[16,25,null,null],[16,1,null,null],[16,8,null,null],[16,26,null,null],[16,27,null,null],[16,28,null,null],[16,29,null,null],[16,14,null,null],[16,30,null,null],[16,18,null,null],[16,31,null,null],[16,19,null,null],[16,32,null,null],[16,33,null,null],[23,25,null,null],[23,1,null,null],[23,8,null,null],[23,26,null,null],[23,27,null,null],[23,28,null,null],[23,29,null,null],[23,14,null,null],[23,30,null,null],[23,18,null,null],[23,31,null,null],[23,19,null,null],[23,32,null,null],[23,33,null,null],[25,1,null,null],[25,8,null,null],[25,26,null,null],[25,27,null,null],[25,28,null,null],[25,29,null,null],[25,14,null,null],[25,30,null,null],[25,18,null,null],[25,31,null,null],[25,19,null,null],[25,32,null,null],[25,33,null,null],[1,8,null,null],[1,26,null,null],[1,27,null,null],[1,28,null,null],[1,29,null,null],[1,14,null,null],[1,30,null,null],[1,18,null,null],[1,31,null,null],[1,19,null,null],[1,32,null,null],[1,33,null,null],[8,26,null,null],[8,27,null,null],[8,28,null,null],[8,29,null,null],[8,14,null,null],[8,30,null,null],[8,18,null,null],[8,31,null,null],[8,19,null,null],[8,32,null,null],[8,33,null,null],[26,27,null,null],[26,28,null,null],[26,29,null,null],[26,14,null,null],[26,30,null,null],[26,18,null,null],[26,31,null,null],[26,19,null,null],[26,32,null,null],[26,33,null,null],[27,28,null,null],[27,29,null,null],[27,14,null,null],[27,30,null,null],[27,18,null,null],[27,31,null,null],[27,19,null,null],[27,32,null,null],[27,33,null,null],[28,29,null,null],[28,14,null,null],[28,30,null,null],[28,18,null,null],[28,31,null,null],[28,19,null,null],[28,32,null,null],[28,33,null,null],[29,14,null,null],[29,30,null,null],[29,18,null,null],[29,31,null,null],[29,19,null,null],[29,32,null,null],[29,33,null,null],[14,30,null,null],[14,18,null,null],[14,31,null,null],[14,19,null,null],[14,32,null,null],[14,33,null,null],[30,18,null,null],[30,31,null,null],[30,19,null,null],[30,32,null,null],[30,33,null,null],[18,31,null,null],[18,19,null,null],[18,32,null,null],[18,33,null,null],[31,19,null,null],[31,32,null,null],[31,33,null,null],[19,32,null,null],[19,33,null,null],[32,33,null,null]],"dashboard":{"kaarten":[["Spelers","21","Woensdag"],["Gespeeld","0 / 210","0% van de wedstrijden"],["Speeldagen","0","met een uitslag"],["Gemiddelde","-","caramboles per beurt (iedereen)"],["Hoogste serie","-","deze competitie"],["Koploper","-",""],["Beste vorm","-",""]],"deze":[],"alltime":[],"staaf":[],"labels":[],"lijnen":[]}}],"dagen":{"Ma":[1],"Wo":[2]},"schema":{"Ma":null,"Wo":null},"bijgewerkt":"2026-11-05T20:31:01","bijgewerktTekst":"donderdag 5 november 2026, 20:31"}</script>
+<script>
+(function(){
+"use strict";
+var mainEl=document.getElementById("main");
+var D=null;
+try{D=JSON.parse(document.getElementById("gegevens").textContent)}catch(e){D=null}
+if(!D||!D.competities){mainEl.innerHTML='<div class="panel">De gegevens ontbreken. Publiceer de site opnieuw vanuit het programma.</div>';return}
+
+// ---------- hulpjes ----------
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const f3=x=>(+x||0).toFixed(3).replace(".",",");
+const pc=x=>Math.round((+x||0)*100)+"%";
+const dat=s=>{if(!s)return null;const a=String(s).split("-").map(Number);return a.length===3?new Date(a[0],a[1]-1,a[2]):null};
+const dm=d=>d?d.toLocaleDateString("nl-NL",{day:"numeric",month:"short"}):"";
+const dmj=d=>d?d.toLocaleDateString("nl-NL",{day:"numeric",month:"short",year:"numeric"}):"";
+const dl=d=>d?d.toLocaleDateString("nl-NL",{weekday:"long",day:"numeric",month:"long"}):"";
+const mj=d=>d?d.toLocaleDateString("nl-NL",{month:"short"}).replace(".","")+" '"+String(d.getFullYear()).slice(2):"";
+const naam=id=>(D.spelers&&D.spelers[id])||"?";
+const opNaam=(x,y)=>naam(x).localeCompare(naam(y),"nl");
+const DAGNAAM={Ma:"Maandag",Wo:"Woensdag"};
+const pv=(p,id)=>p.a===id?{car:p.carA,tm:p.tmA,ser:p.serA,pt:p.ptA,tegen:p.b}:{car:p.carB,tm:p.tmB,ser:p.serB,pt:p.ptB,tegen:p.a};
+const uitChip=(p,id)=>p.win===null?'<span class="chip d">G</span>':p.win===id?'<span class="chip w">W</span>':'<span class="chip l">V</span>';
+const opDatum=(x,y)=>(x.datum?+x.datum:Infinity)-(y.datum?+y.datum:Infinity);
+
+// ---------- gegevens klaarzetten ----------
+const COMP={};
+D.competities.forEach(c=>{
+  c.start=dat(c.start); c.eind=dat(c.eind);
+  c.per={}; (c.klassement||[]).forEach(r=>{c.per[r.sp]=r});
+  c.p=(c.partijen||[]).map(a=>({a:a[0],b:a[1],carA:a[2],tmA:a[3],serA:a[4],ptA:a[5],carB:a[6],tmB:a[7],serB:a[8],ptB:a[9],brt:a[10],win:a[11]===1?a[0]:a[11]===2?a[1]:null,datum:dat(a[12]),gesp:true}));
+  c.o=(c.open||[]).map(a=>({a:a[0],b:a[1],ronde:a[2],datum:dat(a[3]),gesp:false}));
+  COMP[c.id]=c;
+});
+const CHRONO=D.competities.slice().sort((x,y)=>((x.start?+x.start:0)-(y.start?+y.start:0))||(x.id-y.id));
+const DAGLIJST={Ma:(D.dagen&&D.dagen.Ma)||[],Wo:(D.dagen&&D.dagen.Wo)||[]};
+
+// ---------- staat ----------
+const ICO={
+ dashboard:'<path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/>',
+ klassement:'<path d="M9 20V9h6v11M3 20v-6h6M15 20v-9h6v9M2 20h20"/>',
+ spelerskaart:'<circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.8 3.6-5.5 7-5.5s6.2 1.7 7 5.5"/>',
+ onderling:'<path d="M4 8h14l-3-3M20 16H6l3 3"/>',
+ schema:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+ kruistabel:'<rect x="3.5" y="3.5" width="17" height="17" rx="1.5"/><path d="M3.5 9.5h17M3.5 15h17M9.5 3.5v17M15 3.5v17"/>'};
+const VIEWS=[["dashboard","Dashboard","Dashboard"],["klassement","Klassement","Stand"],["spelerskaart","Spelerskaarten","Spelers"],["onderling","Onderling","Onderling"],["schema","Wedstrijdschema","Schema"],["kruistabel","Kruistabel","Kruis"]];
+let dag=DAGLIJST.Ma.length?"Ma":"Wo";
+const keuze={Ma:DAGLIJST.Ma[0],Wo:DAGLIJST.Wo[0]};
+let kaartSp=null,ondA=null,ondB=null;
+try{const o=localStorage.getItem("soos-dag");if((o==="Ma"||o==="Wo")&&DAGLIJST[o].length)dag=o}catch(e){}
+function view(){const h=location.hash.slice(1);return VIEWS.some(v=>v[0]===h)?h:"dashboard"}
+
+let CHARTS=[];
+function grafiek(fn){CHARTS.push(fn);return '<div class="chart" data-i="'+(CHARTS.length-1)+'"></div>'}
+function tekenGrafieken(){document.querySelectorAll(".chart").forEach(el=>{const f=CHARTS[+el.dataset.i];if(f)el.innerHTML=f(Math.max(280,Math.round(el.clientWidth||600)))})}
+const stapLabels=(n,ruimte)=>Math.max(1,Math.ceil(n*54/Math.max(1,ruimte)));
+
+function teken(){
+  const bMa=document.getElementById("bMa"),bWo=document.getElementById("bWo");
+  bMa.hidden=!DAGLIJST.Ma.length; bWo.hidden=!DAGLIJST.Wo.length;
+  bMa.setAttribute("aria-pressed",String(dag==="Ma")); bWo.setAttribute("aria-pressed",String(dag==="Wo"));
+  const v=view();
+  document.getElementById("tabs").innerHTML=VIEWS.map(([id,t,k])=>'<a href="#'+id+'"'+(id===v?' aria-current="page"':"")+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICO[id]+'</svg><span class="lang">'+t+'</span><span class="kort">'+k+'</span></a>').join("");
+  CHARTS=[];
+  const c=COMP[keuze[dag]];
+  if(!c){mainEl.innerHTML='<div class="panel">Er is nog geen competitie om te laten zien.</div>'}
+  else mainEl.innerHTML=compKeuze(c)+({dashboard:vDash,klassement:vKlas,spelerskaart:vKaart,onderling:vOnd,schema:vSchema,kruistabel:vKruis})[v](c);
+  tekenGrafieken();
+  bind();
+  document.getElementById("foot").innerHTML="Bijgewerkt op "+esc(D.bijgewerktTekst)+" · De SooS Carambole Cup "+esc(D.versie)+", gemaakt door "+esc(D.auteur);
+}
+function compKeuze(c){
+  const l=DAGLIJST[dag];
+  if(l.length<2)return "";
+  return '<div class="pick"><label for="selComp" class="sub">Competitie</label><select id="selComp">'+l.map(id=>'<option value="'+id+'"'+(id===c.id?" selected":"")+'>'+esc(COMP[id].naam)+'</option>').join("")+'</select></div>';
+}
+function kop(c,t,sub){return '<div><h2>'+t+'</h2><p class="sub">'+esc(c.naam)+(c.afgesloten?" (afgesloten)":"")+(sub?" · "+sub:"")+'</p></div>'}
+function plLink(sp){return '<a class="pl" href="#spelerskaart" data-kaart="'+sp+'">'+esc(naam(sp))+'</a>'}
+const leegRij=(n,t)=>'<tr><td colspan="'+n+'">'+t+'</td></tr>';
+
+// ---------- dashboard ----------
+const KL6=["var(--lineA)","var(--lineB)","#3f9a55","#c79a10","#8a4fc0","#c03a3a"];
+function vDash(c){
+  const db=c.dashboard||{};
+  const kaarten=db.kaarten||[],deze=db.deze||[],alle=db.alltime||[],staafD=db.staaf||[],labels=db.labels||[],lijnen=db.lijnen||[];
+  const ster='<span class="ster" title="Ook het all-time record">★</span>';
+  const rij=(r,goud,metSter)=>'<tr'+(goud?' class="goud"':"")+'><td>'+esc(r[0])+'</td><td class="r"><span class="pts num">'+esc(r[1])+'</span>'+(metSter?" "+ster:"")+'</td><td><b>'+esc(r[2])+'</b><span class="det">'+esc(r[3])+'</span></td></tr>';
+  return kop(c,"Dashboard","bijgewerkt "+esc(D.bijgewerktTekst))+
+  '<div class="tiles">'+kaarten.map(t=>'<div class="tile"><div class="k">'+esc(t[0])+'</div><div class="v num">'+esc(t[1])+'</div><div class="o">'+esc(t[2])+'</div></div>').join("")+'</div>'+
+  '<div class="grid2">'+
+   '<div class="panel"><h3>Records deze competitie</h3><div class="tbl"><table class="wrapt"><thead><tr><th>Record</th><th class="r">Waarde</th><th>Speler</th></tr></thead><tbody>'+(deze.map(r=>rij(r,r[4],r[4])).join("")||leegRij(3,"Nog geen uitslagen"))+'</tbody></table></div>'+
+     '<p class="sub" style="margin-top:10px">'+ster+' = dit is ook het all-time record.</p></div>'+
+   '<div class="panel"><h3>All-time records</h3><div class="tbl"><table class="wrapt"><thead><tr><th>Record</th><th class="r">Waarde</th><th>Speler</th></tr></thead><tbody>'+(alle.map(r=>rij(r,r[4],false)).join("")||leegRij(3,"Nog geen uitslagen"))+'</tbody></table></div>'+
+     '<p class="sub" style="margin-top:10px">Over alle competities in het programma, maandag en woensdag samen. Goud = gezet in deze competitie.</p></div>'+
+  '</div>'+
+  '<div class="grid2">'+
+   '<div class="panel"><h3>Top 10: % van het eigen gemiddelde</h3>'+(staafD.length?grafiek(W=>staaf(staafD,W))+'<p class="sub">Groen = boven het eigen gemiddelde. De stippellijn is 100%.</p>':'<p class="sub">Nog geen uitslagen.</p>')+'</div>'+
+   '<div class="panel"><h3>Puntenontwikkeling top 6</h3>'+(labels.length&&lijnen.length?grafiek(W=>puntenLijn(labels,lijnen,W))+
+     '<div class="legenda">'+lijnen.map((l,i)=>'<span><span class="sw" style="background:'+KL6[i%6]+'"></span>'+esc(l[0])+' ('+(l[1].length?l[1][l[1].length-1]:0)+')</span>').join("")+'</div>':'<p class="sub">Nog geen uitslagen.</p>')+'</div>'+
+  '</div>';
+}
+function staaf(rows,W){
+  const max=Math.max(1.05,...rows.map(r=>r[1]))*1.04;
+  let s;
+  if(W<480){ // telefoon: naam boven de balk, zodat elke naam voluit past
+    const rh=40,L=4,R=48,H=rows.length*rh+8,sx=v=>L+(W-L-R)*v/max;
+    s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Procent van het eigen gemiddelde, top 10">';
+    s+='<line x1="'+sx(1)+'" x2="'+sx(1)+'" y1="4" y2="'+(H-4)+'" stroke="var(--muted)" stroke-dasharray="4 4"/>';
+    rows.forEach((r,i)=>{const y=6+i*rh;s+='<text x="'+L+'" y="'+(y+12)+'" style="fill:var(--fg)">'+esc(r[0])+'</text><rect x="'+L+'" y="'+(y+18)+'" width="'+Math.max(1,sx(r[1])-L)+'" height="13" rx="3" fill="'+(r[1]>=1?"var(--bar-good)":"var(--bar)")+'"/><text x="'+(sx(r[1])+5)+'" y="'+(y+29)+'" style="font-weight:700;fill:var(--fg)">'+pc(r[1])+'</text>'});
+  }else{
+    const rh=26,L=Math.min(170,Math.round(W*.38)),R=48,H=rows.length*rh+14,sx=v=>L+(W-L-R)*v/max;
+    s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Procent van het eigen gemiddelde, top 10">';
+    s+='<line x1="'+sx(1)+'" x2="'+sx(1)+'" y1="4" y2="'+(H-6)+'" stroke="var(--muted)" stroke-dasharray="4 4"/>';
+    rows.forEach((r,i)=>{const y=8+i*rh;s+='<text x="'+(L-8)+'" y="'+(y+14)+'" text-anchor="end">'+esc(r[0])+'</text><rect x="'+L+'" y="'+(y+4)+'" width="'+Math.max(1,sx(r[1])-L)+'" height="15" rx="3" fill="'+(r[1]>=1?"var(--bar-good)":"var(--bar)")+'"/><text x="'+(sx(r[1])+5)+'" y="'+(y+15)+'" style="font-weight:700;fill:var(--fg)">'+pc(r[1])+'</text>'});
+  }
+  return s+'</svg>';
+}
+function puntenLijn(labels,lijnen,W){
+  const H=Math.round(Math.min(240,Math.max(190,W*.45))),L=32,R=14,T=12,B=26,n=labels.length;
+  const max=Math.max(1,...lijnen.map(l=>l[1].length?Math.max(...l[1]):0)),stap=max<=10?2:max<=25?5:max<=60?10:20,top=Math.ceil(max/stap)*stap;
+  const X=i=>L+(W-L-R)*(n===1?.5:i/(n-1)),Y=v=>T+(H-T-B)*(1-v/top);
+  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Punten per speeldag van de top 6">';
+  for(let v=0;v<=top;v+=stap)s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="var(--line)"/><text x="'+(L-6)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+v+'</text>';
+  const st=stapLabels(n,W-L-R);
+  labels.forEach((t,i)=>{if(i%st===0)s+='<text x="'+X(i)+'" y="'+(H-6)+'" text-anchor="middle">'+esc(t)+'</text>'});
+  lijnen.forEach((l,k)=>{const w=l[1];if(!w.length)return;s+='<polyline fill="none" stroke="'+KL6[k%6]+'" stroke-width="2.4" stroke-linejoin="round" points="'+w.map((v,i)=>X(i)+","+Y(v)).join(" ")+'"/><circle cx="'+X(w.length-1)+'" cy="'+Y(w[w.length-1])+'" r="3.5" fill="'+KL6[k%6]+'"/>'});
+  return s+'</svg>';
+}
+
+// ---------- klassement ----------
+function vKlas(c){
+  const k=c.klassement||[];
+  const rows=k.map((r,i)=>{
+    const proc=r.gesp?'<span class="'+(r.proc>1?"goed":r.proc<1?"slecht":"")+'">'+pc(r.proc)+'</span>':"";
+    const nieuw=r.tmNieuw>r.tm?'<span class="goed">'+r.tmNieuw+'</span>':"";
+    return '<tr'+(r.plaats==="1"?' class="lead"':"")+'><td class="c"><span class="rank">'+esc(r.plaats)+'</span></td><td class="nm">'+plLink(r.sp)+(r.gestopt?' <span class="sub">(gestopt)</span>':"")+'</td><td class="r num">'+r.gesp+'</td><td class="r num hm">'+r.w+'</td><td class="r num hm">'+r.g+'</td><td class="r num hm">'+r.v+'</td><td class="r"><span class="pts num">'+r.pnt+'</span></td><td class="r num hm">'+r.tm+'</td><td class="r num hm">'+(r.gesp?f3(r.gem):"")+'</td><td class="r num hm">'+f3(r.eigen)+'</td><td class="r num">'+proc+'</td><td class="r num hm">'+r.hs+'</td><td class="r num hm">'+r.nog+'</td><td class="r num hm">'+nieuw+'</td><td class="c km" style="padding:4px"><button type="button" class="open" data-meer="'+i+'" aria-expanded="false" aria-label="Meer van '+esc(naam(r.sp))+'">▾</button></td></tr>'+
+    '<tr class="meer" id="meer'+i+'" hidden><td colspan="15"><div class="meerkv"><span>W / G / V<b class="num">'+r.w+' / '+r.g+' / '+r.v+'</b></span><span>Te maken<b class="num">'+r.tm+'</b></span><span>Nog te spelen<b class="num">'+r.nog+'</b></span><span>Gemiddelde<b class="num">'+(r.gesp?f3(r.gem):"–")+'</b></span><span>Eigen gem.<b class="num">'+f3(r.eigen)+'</b></span><span>H. serie<b class="num">'+r.hs+'</b></span>'+(r.tmNieuw>r.tm?'<span>Nieuw te maken<b class="num goed">'+r.tmNieuw+'</b></span>':"")+'</div></td></tr>'}).join("");
+  return kop(c,"Klassement","bij gelijke punten telt het % van het eigen gemiddelde")+
+  '<div class="panel"><div class="tbl"><table><thead><tr><th class="c">Pl</th><th>Speler</th><th class="r">Gesp</th><th class="r hm">W</th><th class="r hm">G</th><th class="r hm">V</th><th class="r">Pnt</th><th class="r hm">Te maken</th><th class="r hm">Gem.</th><th class="r hm">Eigen</th><th class="r">% eig.</th><th class="r hm">H.s.</th><th class="r hm">Nog</th><th class="r hm" title="Verwachte nieuwe te maken caramboles">Nieuw</th><th class="km" style="width:34px"></th></tr></thead><tbody>'+(rows||leegRij(15,"Nog geen spelers"))+'</tbody></table></div>'+
+  '<p class="sub" style="margin-top:10px"><span class="lang">Klik op een naam voor de spelerskaart. Nieuw = verwachte nieuwe te maken caramboles (alleen als die omhoog gaan).</span><span class="kort">Tik op ▾ voor meer cijfers, of op een naam voor de spelerskaart.</span></p></div>';
+}
+
+// ---------- spelerskaart ----------
+function vKaart(c){
+  const lijst=(c.klassement||[]).slice().sort((x,y)=>opNaam(x.sp,y.sp));
+  if(!lijst.length)return kop(c,"Spelerskaart")+'<div class="panel">Nog geen spelers.</div>';
+  if(kaartSp==null||!c.per[kaartSp])kaartSp=lijst[0].sp;
+  const sp=kaartSp,r=c.per[sp];
+  const mijn=c.p.filter(p=>p.a===sp||p.b===sp).sort(opDatum);
+  let car=0,b=0;const verloop=mijn.map(p=>{car+=pv(p,sp).car;b+=p.brt;return b?car/b:0});
+  const ander=dag==="Ma"?"Wo":"Ma",ac=COMP[keuze[ander]];
+  const nieuw=mijn.slice().reverse();
+  const rows=nieuw.map(p=>{const x=pv(p,sp);return '<tr><td class="num">'+dm(p.datum)+'</td><td>'+esc(naam(x.tegen))+'</td><td class="c">'+uitChip(p,sp)+'</td><td class="r num">'+x.car+' / '+x.tm+'</td><td class="r num">'+p.brt+'</td><td class="r num">'+f3(p.brt?x.car/p.brt:0)+'</td><td class="r num">'+x.ser+'</td><td class="r"><span class="pts num">'+x.pt+'</span></td></tr>'}).join("");
+  const kaartjes=nieuw.map(p=>{const x=pv(p,sp);return '<div class="m"><div class="m1">'+uitChip(p,sp)+'<b>'+esc(naam(x.tegen))+'</b><span class="m2">'+dm(p.datum)+'</span></div><div class="m2 num">'+x.car+'/'+x.tm+' car · '+p.brt+' brt · gem '+f3(p.brt?x.car/p.brt:0)+' · serie '+x.ser+'</div><div class="mp"><span class="pts num">'+x.pt+'</span>pnt</div></div>'}).join("");
+  const nog=c.o.filter(p=>p.a===sp||p.b===sp).sort(opDatum).map(p=>{const t=p.a===sp?p.b:p.a,gepland=p.ronde!=null&&p.datum;return '<span class="chip '+(gepland?"p":"leeg")+'">'+esc(naam(t))+(gepland?" · "+dm(p.datum)+", ronde "+p.ronde:"")+'</span>'}).join(" ");
+  return kop(c,"Spelerskaart")+
+  '<div class="pick"><label for="selKaart" class="sub">Speler</label><select id="selKaart">'+lijst.map(x=>'<option value="'+x.sp+'"'+(x.sp===sp?" selected":"")+'>'+esc(naam(x.sp))+'</option>').join("")+'</select></div>'+
+  '<div class="panel" style="display:grid;gap:14px">'+
+    '<div class="kaartkop"><div class="naam">'+esc(naam(sp))+'</div><div class="kv"><span>Plaats<b>'+(r.plaats||"–")+'</b></span><span>Punten<b>'+r.pnt+'</b></span><span>Te maken<b>'+r.tm+'</b></span><span>Gem.<b>'+(r.gesp?f3(r.gem):"–")+'</b></span><span>Eigen<b>'+f3(r.eigen)+'</b></span><span>% eigen<b>'+(r.gesp?pc(r.proc):"–")+'</b></span><span>H. serie<b>'+r.hs+'</b></span></div></div>'+
+    (ac&&ac!==c&&ac.per[sp]?'<div class="ook">Speelt ook in de '+DAGNAAM[ander].toLowerCase()+'competitie. <a href="#spelerskaart" data-wissel="'+ander+'" data-sp="'+sp+'">Bekijk die kaart</a></div>':"")+
+    (mijn.length?grafiek(W=>verloopGrafiek(verloop,r.eigen,mijn,W))+'<div class="legenda"><span><span class="sw" style="background:var(--lineA)"></span>gemiddelde t/m de wedstrijd</span><span><span class="sw" style="background:var(--lineB)"></span>eigen gemiddelde (stippellijn)</span></div>':'<p class="sub" style="margin:0">Nog geen wedstrijden gespeeld in deze competitie.</p>')+
+  '</div>'+
+  '<div class="panel"><h3>Gespeelde wedstrijden</h3>'+
+    '<div class="tbl alleen-breed"><table><thead><tr><th>Datum</th><th>Tegenstander</th><th class="c">Uitslag</th><th class="r">Car.</th><th class="r">Beurten</th><th class="r">Gem.</th><th class="r">Serie</th><th class="r">Punten</th></tr></thead><tbody>'+(rows||leegRij(8,"Nog geen wedstrijden"))+'</tbody></table></div>'+
+    '<div class="mlijst">'+(kaartjes||"Nog geen wedstrijden")+'</div></div>'+
+  '<div class="panel"><h3>Nog te spelen</h3><div class="chips">'+(nog||"Alles gespeeld")+'</div><p class="sub" style="margin-top:8px">Blauw = al ingepland, met datum en ronde.</p></div>'+
+  seizoenen(sp);
+}
+function seizoenen(sp){
+  const rij=CHRONO.filter(cc=>cc.per[sp]).map(cc=>({cc,r:cc.per[sp],van:(cc.klassement||[]).filter(x=>x.gesp>0).length}));
+  if(!rij.length)return "";
+  const rows=rij.slice().reverse().map(({cc,r,van})=>'<tr'+(cc.id===keuze[dag]?' class="lead"':"")+'><td style="white-space:normal">'+esc(cc.naam)+(cc.afgesloten?"":' <span class="chip p">loopt</span>')+'</td><td class="r num">'+r.gesp+'</td><td class="r"><span class="pts num">'+r.pnt+'</span></td><td class="r num">'+(r.plaats?r.plaats+"/"+van:"–")+'</td><td class="r num hm">'+r.tm+'</td><td class="r num hm">'+(r.gesp?f3(r.gem):"")+'</td><td class="r num">'+(r.gesp?pc(r.proc):"")+'</td><td class="r num hm">'+r.hs+'</td></tr>').join("");
+  const pts=rij.filter(x=>x.r.gesp>0);
+  return '<div class="panel"><h3>Alle competities</h3><div class="tbl"><table><thead><tr><th>Competitie</th><th class="r">Gesp</th><th class="r">Pnt</th><th class="r">Plaats</th><th class="r hm">Te maken</th><th class="r hm">Gem.</th><th class="r">% eig.</th><th class="r hm">H.s.</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+   (pts.length?'<h3 style="margin-top:16px">Gemiddelde per competitie over de seizoenen</h3>'+grafiek(W=>seizoenGrafiek(pts,W))+
+   '<div class="legenda"><span><span class="sw" style="background:var(--lineA)"></span>maandag</span><span><span class="sw" style="background:var(--lineB)"></span>woensdag</span><span>doorgetrokken = gespeeld, stippellijn = eigen gemiddelde, open rondje = loopt nog</span></div>':"")+'</div>';
+}
+function seizoenGrafiek(pts,W){
+  const H=210,L=46,R=16,T=22,B=28,n=pts.length;
+  const vals=[];pts.forEach(x=>{if(x.r.gem>0)vals.push(x.r.gem);if(x.r.eigen>0)vals.push(x.r.eigen)});
+  let lo=Math.min(...vals)*.85,hi=Math.max(...vals)*1.1;if(!(hi-lo>1e-6)){lo=0;hi=1}
+  const X=i=>L+(W-L-R)*(n===1?.5:i/(n-1)),Y=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
+  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Gemiddelde per competitie over de seizoenen">';
+  for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4;s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="var(--line)"/><text x="'+(L-6)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+f3(v)+'</text>'}
+  const st=stapLabels(n,W-L-R);
+  pts.forEach((x,i)=>{if(i%st===0)s+='<text x="'+X(i)+'" y="'+(H-8)+'" text-anchor="'+(n>1&&i===0?"start":n>1&&i===n-1?"end":"middle")+'">'+esc(x.cc.start?mj(x.cc.start):"#"+(i+1))+'</text>'});
+  [["Ma","var(--lineA)"],["Wo","var(--lineB)"]].forEach(([dg,kl])=>{
+    const p=pts.map((x,i)=>({x,i})).filter(o=>o.x.cc.dag===dg);
+    if(!p.length)return;
+    s+='<polyline fill="none" stroke="'+kl+'" stroke-width="1.6" stroke-dasharray="5 4" points="'+p.map(o=>X(o.i)+","+Y(o.x.r.eigen)).join(" ")+'"/>';
+    s+='<polyline fill="none" stroke="'+kl+'" stroke-width="2.4" points="'+p.map(o=>X(o.i)+","+Y(o.x.r.gem)).join(" ")+'"/>';
+    p.forEach(o=>s+='<circle cx="'+X(o.i)+'" cy="'+Y(o.x.r.gem)+'" r="4" fill="'+(o.x.cc.afgesloten?kl:"var(--surface)")+'" stroke="'+kl+'" stroke-width="2"><title>'+esc(o.x.cc.naam)+': '+f3(o.x.r.gem)+' ('+pc(o.x.r.proc)+' van eigen)</title></circle>');
+    const l=p[p.length-1];s+='<text x="'+(X(l.i)+(l.i===0&&n>1?8:-8))+'" y="'+(Y(l.x.r.gem)-9)+'" text-anchor="'+(l.i===0&&n>1?"start":"end")+'" style="font-weight:700;fill:'+kl+'">'+f3(l.x.r.gem)+'</text>';
+  });
+  return s+'</svg>';
+}
+function verloopGrafiek(w,eig,mijn,W){
+  const H=Math.round(Math.min(220,Math.max(180,W*.4))),L=46,R=14,T=14,B=26;
+  let lo=Math.min(eig,...w)*.85,hi=Math.max(eig,...w)*1.1;if(!(hi-lo>1e-6)){lo=0;hi=1}
+  const X=i=>L+(W-L-R)*(w.length===1?.5:i/(w.length-1)),Y=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
+  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Verloop van het gemiddelde">';
+  for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4;s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="var(--line)"/><text x="'+(L-6)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+f3(v)+'</text>'}
+  // één datum per speeldag (twee partijen op één middag krijgen één label), en niet te dicht op elkaar
+  let vorigeX=-1e9,vorige="";
+  mijn.forEach((p,i)=>{const t=dm(p.datum);if(!t||t===vorige||X(i)-vorigeX<54)return;vorige=t;vorigeX=X(i);s+='<text x="'+X(i)+'" y="'+(H-6)+'" text-anchor="'+(i===0&&w.length>1?"start":"middle")+'">'+t+'</text>'});
+  s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(eig)+'" y2="'+Y(eig)+'" stroke="var(--lineB)" stroke-width="2" stroke-dasharray="6 5"/>';
+  s+='<polyline fill="none" stroke="var(--lineA)" stroke-width="2.4" stroke-linejoin="round" points="'+w.map((v,i)=>X(i)+","+Y(v)).join(" ")+'"/>';
+  w.forEach((v,i)=>s+='<circle cx="'+X(i)+'" cy="'+Y(v)+'" r="3" fill="var(--lineA)"/>');
+  return s+'</svg>';
+}
+
+// ---------- onderling ----------
+function vOnd(c){
+  const lijst=(c.klassement||[]).slice().sort((x,y)=>opNaam(x.sp,y.sp));
+  if(lijst.length<2)return kop(c,"Onderling")+'<div class="panel">Er zijn nog niet genoeg spelers.</div>';
+  if(ondA==null||!c.per[ondA])ondA=lijst[0].sp;
+  if(ondB==null||!c.per[ondB]||ondB===ondA)ondB=lijst.find(x=>x.sp!==ondA).sp;
+  const A=ondA,B=ondB;
+  const opt=sel=>lijst.map(x=>'<option value="'+x.sp+'"'+(x.sp===sel?" selected":"")+'>'+esc(naam(x.sp))+'</option>').join("");
+  const blok=cc=>{
+    if(!cc||!cc.per[A]||!cc.per[B])return "";
+    const zelfde=p=>(p.a===A&&p.b===B)||(p.a===B&&p.b===A);
+    const p=cc.p.find(zelfde)||cc.o.find(zelfde);
+    if(!p)return "";
+    if(!p.gesp)return '<div class="panel"><h3>'+esc(cc.naam)+'</h3><p style="margin:0">Nog niet gespeeld.'+(p.ronde!=null&&p.datum?' Staat op '+dl(p.datum)+', ronde '+p.ronde+'.':"")+'</p></div>';
+    const xa=pv(p,A),xb=pv(p,B),uit=p.win===null?"Gelijkspel":"Gewonnen door "+esc(naam(p.win));
+    const cl=id=>p.win===id?"w":p.win===null?"d":"l";
+    return '<div class="panel"><h3>'+esc(cc.naam)+' · '+dl(p.datum)+'</h3>'+
+     '<div class="score"><div class="wie">'+esc(naam(A))+'</div><div></div><div class="wie">'+esc(naam(B))+'</div>'+
+      '<div class="car num">'+xa.car+'</div><div class="mid">'+p.brt+'<br>beurten</div><div class="car num">'+xb.car+'</div>'+
+      '<div class="sdet num">van '+xa.tm+'<br>gem. '+f3(p.brt?xa.car/p.brt:0)+'<br>serie '+xa.ser+'</div><div></div><div class="sdet num">van '+xb.tm+'<br>gem. '+f3(p.brt?xb.car/p.brt:0)+'<br>serie '+xb.ser+'</div>'+
+      '<div><span class="chip '+cl(A)+'">'+xa.pt+' pnt</span></div><div class="mid">'+uit+'</div><div><span class="chip '+cl(B)+'">'+xb.pt+' pnt</span></div></div></div>';
+  };
+  const hist=[];
+  CHRONO.forEach(cc=>cc.p.forEach(p=>{if((p.a===A&&p.b===B)||(p.a===B&&p.b===A))hist.push({cc,p})}));
+  hist.sort((x,y)=>opDatum(y.p,x.p));
+  let w=0,g=0,v=0;hist.forEach(h=>{if(h.p.win===null)g++;else if(h.p.win===A)w++;else v++});
+  const hRows=hist.map(h=>{const xa=pv(h.p,A),xb=pv(h.p,B);return '<tr><td class="num">'+dmj(h.p.datum)+'</td><td style="white-space:normal">'+esc(h.cc.naam)+'</td><td class="c">'+uitChip(h.p,A)+'</td><td class="r num">'+xa.car+'/'+xa.tm+' – '+xb.car+'/'+xb.tm+'</td><td class="r num">'+h.p.brt+'</td><td class="r num">'+xa.pt+' – '+xb.pt+'</td></tr>'}).join("");
+  const hKaart=hist.map(h=>{const xa=pv(h.p,A),xb=pv(h.p,B);return '<div class="m"><div class="m1">'+uitChip(h.p,A)+'<b>'+esc(h.cc.naam)+'</b><span class="m2">'+dmj(h.p.datum)+'</span></div><div class="m2 num">'+xa.car+'/'+xa.tm+' – '+xb.car+'/'+xb.tm+' car · '+h.p.brt+' beurten</div><div class="mp"><span class="pts num">'+xa.pt+'–'+xb.pt+'</span>pnt</div></div>'}).join("");
+  const ander=COMP[keuze[dag==="Ma"?"Wo":"Ma"]];
+  return kop(c,"Onderling","alle partijen tussen twee spelers")+
+  '<div class="pick"><select id="selA" aria-label="Eerste speler">'+opt(A)+'</select><span class="vs">tegen</span><select id="selB" aria-label="Tweede speler">'+opt(B)+'</select></div>'+
+  blok(c)+(ander&&ander!==c?blok(ander):"")+
+  '<div class="panel"><h3>Alle competities: '+esc(naam(A))+' tegen '+esc(naam(B))+'</h3>'+
+   '<div class="tally"><div><b class="num" style="color:var(--win-fg)">'+w+'</b>gewonnen</div><div><b class="num" style="color:var(--draw-fg)">'+g+'</b>gelijk</div><div><b class="num" style="color:var(--loss-fg)">'+v+'</b>verloren</div></div>'+
+   '<div class="tbl alleen-breed" style="margin-top:12px"><table><thead><tr><th>Datum</th><th>Competitie</th><th class="c">'+esc(naam(A))+'</th><th class="r">Caramboles</th><th class="r">Beurten</th><th class="r">Punten</th></tr></thead><tbody>'+(hRows||leegRij(6,"Nog nooit tegen elkaar gespeeld"))+'</tbody></table></div>'+
+   '<div class="mlijst" style="margin-top:6px">'+(hKaart||"Nog nooit tegen elkaar gespeeld")+'</div>'+
+   '<p class="sub" style="margin-top:8px">Gezien vanuit '+esc(naam(A))+'. Te maken caramboles zoals ze toen waren.</p></div>';
+}
+
+// ---------- wedstrijdschema ----------
+function vSchema(c){
+  const s=D.schema&&D.schema[dag];
+  if(!s||!s.wedstrijden||!s.wedstrijden.length)return kop(c,"Wedstrijdschema")+'<div class="panel">Er staat nog geen '+DAGNAAM[dag].toLowerCase()+' ingepland. Het schema verschijnt hier zodra de volgende middag is ingepland.</div>';
+  const datum=dat(s.datum);
+  const rondes={};s.wedstrijden.forEach(w=>{(rondes[w.ronde]=rondes[w.ronde]||[]).push(w)});
+  const nrs=Object.keys(rondes).map(Number).sort((a,b)=>a-b);
+  const tag=w=>{if(w.comp===c.id)return "";const o=COMP[w.comp];if(!o)return "";return '<span class="chip p tag">'+(o.dag!==c.dag?"inhaal "+DAGNAAM[o.dag].toLowerCase():(o.id>c.id?"nieuwe competitie":"lopende competitie"))+'</span>'};
+  const rd=nrs.map(n=>'<div class="ronde"><h3>Ronde '+n+'</h3>'+rondes[n].sort((a,b)=>a.biljart-b.biljart).map(w=>'<div class="bilj"><span class="nr"><span class="lang">BILJART </span>'+w.biljart+'</span><div>'+esc(naam(w.a))+' <span class="tm num">('+w.tmA+')</span><span class="vs">–</span>'+esc(naam(w.b))+' <span class="tm num">('+w.tmB+')</span>'+tag(w)+(w.gespeeld?' <span class="chip leeg tag">gespeeld</span>':"")+'</div></div>').join("")+'</div>').join("");
+  const uit=(s.biljarts&&s.biljarts.length&&s.biljarts.length<4)?[1,2,3,4].filter(b=>s.biljarts.indexOf(b)<0):[];
+  return kop(c,"Wedstrijdschema",dl(datum)+", 's middags")+
+  '<div class="panel">'+rd+'<p class="sub" style="margin-top:14px"><span class="kort">Het nummer is het biljart. </span>Tussen haakjes: te maken caramboles.'+(uit.length?" Biljart "+uit.join(" en ")+" is die middag buiten gebruik.":"")+' Wijzigingen op de middag zelf staan pas op de site als die opnieuw is bijgewerkt.</p></div>';
+}
+
+// ---------- kruistabel ----------
+function vKruis(c){
+  const rk=r=>r.plaats?+r.plaats:1e9;
+  const spelers=(c.klassement||[]).filter(r=>!r.gestopt||r.gesp>0).slice().sort((x,y)=>(rk(x)-rk(y))||opNaam(x.sp,y.sp));
+  if(!spelers.length)return kop(c,"Kruistabel")+'<div class="panel">Nog geen spelers.</div>';
+  const koppel={};const sl=(a,b)=>a<b?a+"-"+b:b+"-"+a;
+  c.o.forEach(p=>{koppel[sl(p.a,p.b)]=p});c.p.forEach(p=>{koppel[sl(p.a,p.b)]=p});
+  const head=spelers.map(x=>'<th class="num" title="'+esc(naam(x.sp))+'">'+x.nr+'</th>').join("");
+  const rows=spelers.map(rij=>{
+    const cel=spelers.map(kol=>{
+      if(rij.sp===kol.sp)return '<td class="cel x"></td>';
+      const p=koppel[sl(rij.sp,kol.sp)];
+      if(!p)return '<td class="cel"></td>';
+      if(!p.gesp)return p.ronde!=null&&p.datum?'<td class="cel p" style="font-size:12px">R'+p.ronde+'</td>':'<td class="cel" style="color:var(--muted)">·</td>';
+      return '<td class="cel '+(p.win===null?"d":p.win===rij.sp?"w":"l")+'">'+pv(p,rij.sp).pt+'</td>'}).join("");
+    return '<tr><td class="nm"><span class="sub num">'+rij.nr+'</span> '+esc(naam(rij.sp))+(rij.gestopt?' <span class="sub">(gestopt)</span>':"")+'</td>'+cel+'<td class="tot r hm">'+rij.gesp+'</td><td class="tot r hm">'+rij.w+'</td><td class="tot r hm">'+rij.g+'</td><td class="tot r hm">'+rij.v+'</td><td class="tot r"><b>'+rij.pnt+'</b></td><td class="tot r">'+esc(rij.plaats)+'</td></tr>'}).join("");
+  return kop(c,"Kruistabel","punten van de speler in de rij tegen de speler in de kolom")+
+  '<div class="panel"><div class="tbl"><table class="kruis"><thead><tr><th class="nm">Speler</th>'+head+'<th class="hm">Gesp</th><th class="hm">W</th><th class="hm">G</th><th class="hm">V</th><th>Pnt</th><th>Pl</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+  '<div class="legenda"><span><span class="chip w">2</span> gewonnen</span><span><span class="chip l">1</span> verloren</span><span><span class="chip d">1</span> gelijk</span><span><span class="chip p">R2</span> ingepland, ronde 2</span><span>· nog te spelen</span></div>'+
+  '<p class="sub" style="margin-top:6px">De nummers boven de kolommen zijn de spelernummers (voor de naam in elke rij).<span class="kort"> Schuif de tabel opzij; de namen blijven staan.</span></p></div>';
+}
+
+// ---------- bediening ----------
+function bind(){
+  document.querySelectorAll("[data-kaart]").forEach(a=>a.addEventListener("click",()=>{kaartSp=+a.dataset.kaart}));
+  document.querySelectorAll("[data-meer]").forEach(bt=>bt.addEventListener("click",()=>{const rij=document.getElementById("meer"+bt.dataset.meer),open=rij.hidden;rij.hidden=!open;bt.setAttribute("aria-expanded",String(open));bt.textContent=open?"▴":"▾"}));
+  const sc=document.getElementById("selComp");if(sc)sc.addEventListener("change",()=>{keuze[dag]=+sc.value;teken()});
+  const sk=document.getElementById("selKaart");if(sk)sk.addEventListener("change",()=>{kaartSp=+sk.value;teken()});
+  const sa=document.getElementById("selA"),sb=document.getElementById("selB");
+  if(sa)sa.addEventListener("change",()=>{ondA=+sa.value;if(ondA===ondB)ondB=null;teken()});
+  if(sb)sb.addEventListener("change",()=>{ondB=+sb.value;if(ondA===ondB)ondA=null;teken()});
+  document.querySelectorAll("[data-wissel]").forEach(a=>a.addEventListener("click",()=>{zetDag(a.dataset.wissel);kaartSp=+a.dataset.sp;teken()}));
+}
+function zetDag(d){if(!DAGLIJST[d].length)return;dag=d;try{localStorage.setItem("soos-dag",d)}catch(e){}}
+document.getElementById("bMa").addEventListener("click",()=>{zetDag("Ma");teken()});
+document.getElementById("bWo").addEventListener("click",()=>{zetDag("Wo");teken()});
+window.addEventListener("hashchange",()=>{teken();window.scrollTo(0,0)});
+let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(tekenGrafieken,150)});
+teken();
+})();
+</script>
+</body>
+</html>
